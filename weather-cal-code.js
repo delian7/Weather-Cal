@@ -191,6 +191,7 @@ const weatherCal = {
     this.writePreference("weather-cal-api-key", apiKey)
     
     const apiResponse = await this.getWeatherApiPath(apiKey)
+    console.log(apiResponse);
     if (apiResponse && apiResponse.current) { 
       await this.generateAlert("The API key worked and was saved.",[firstRun ? "Continue" : "OK"]) 
     } else if (firstRun) {
