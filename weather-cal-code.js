@@ -1678,7 +1678,12 @@ const weatherCal = {
 
   async notionTodos(column) {
     const url = "https://api.delianpetrov.com/todos";
-    const req = new Request(url)
+    const req = new Request(url) 
+
+    req.headers = {
+      "x-api-key": "your-api-key-here"
+    };    
+    
     let todos;
     try {
       todos = await req.loadJSON()

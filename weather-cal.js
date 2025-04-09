@@ -43,7 +43,7 @@ const layout = `
 
 // Names of Weather Cal elements.
 const codeFilename = "weather-cal-code"
-const gitHubUrl = "https://raw.githubusercontent.com/mzeryck/Weather-Cal/main/weather-cal-code.js"
+const gitHubUrl = "https://raw.githubusercontent.com/delian7/Weather-Cal/main/weather-cal-code.js"
 
 // Determine if the user is using iCloud.
 let files = FileManager.local()
@@ -66,25 +66,6 @@ const code = importModule(codeFilename)
 
 const custom = {
 
-  async todos(column) {
-    const url = "https://api.delianpetrov.com/todos";
-    const req = new Request(url)
-    let response;
-    try {
-      response = await req.loadJSON()
-    } catch {
-
-    }
-
-    const todos = response.map((todo) => {
-      const { name, id, date } = todo
-
-      return name;
-    })
-    //const response = fetch(url);
-
-    code.provideText(todos.split("\n"), column, code.format.eventTitle)
-  }
 }
 
 // Run the initial setup or settings menu.
