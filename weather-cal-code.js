@@ -1679,55 +1679,22 @@ const weatherCal = {
   async notionTodos(column) {
     const url = "https://api.delianpetrov.com/todos";
     const req = new Request(url)
-    let response;
+    let todos;
     try {
-      response = await req.loadJSON()
+      todos = await req.loadJSON()
     } catch {
 
     }
 
-    const todos = response.map((todo) => {
-      const { name, id, date } = todo
+    for (todo of todos) {
+      const todoStack = column.addStack()
+      todoStack.setPadding(this.padding, this.padding, this.padding, this.padding)
+      todoStack.spacing = this.padding/5
+      todoStack.layoutVertically()
+      // todoStack.url = todo.link
 
-      return name;
-    })
-
-    for (todo of ttodos) {
-      const newsStack = column.addStack()
-      newsStack.setPadding(this.padding, this.padding, this.padding, this.padding)
-      newsStack.spacing = this.padding/5
-      newsStack.layoutVertically()
-      newsStack.url = newsItem.link
-
-      const titleStack = this.align(newsStack)
-      const title = this.provideText(newsItem.title, titleStack, this.format.newsTitle)
-      if (newsSettings.limitLineHeight) title.lineLimit = 1
-
-      if (!newsSettings.showDate) { continue }
-
-      const dateStack = this.align(newsStack)
-      let dateValue = new Date(newsItem.date)
-      let dateText
-      switch (newsSettings.showDate) {
-        case "relative":
-          const rdf = new RelativeDateTimeFormatter()
-          rdf.locale = this.locale
-          rdf.useNamedDateTimeStyle()
-          dateText = rdf.string(dateValue, this.now)
-          break
-        case "date":
-          dateText = this.formatDate(dateValue)
-          break
-        case "time":
-          dateText = dateText = this.formatTime(dateValue)
-          break
-        case "datetime":
-          dateText = this.formatDatetime(dateValue)
-          break
-        case "custom":
-          dateText = this.formatDate(dateValue, newsSettings.dateFormat)
-      }
-      if (dateText) this.provideText(dateText, dateStack, this.format.newsDate)
+      const titleStack = this.align(todoStack)
+      this.provideText(`• ${todo.name}`, titleStack, this.format.reminderTitle)
     }
   },
 
