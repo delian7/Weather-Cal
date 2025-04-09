@@ -1691,7 +1691,7 @@ const weatherCal = {
       todoStack.setPadding(this.padding, this.padding, this.padding, this.padding)
       todoStack.spacing = this.padding/5
       todoStack.layoutVertically()
-      // todoStack.url = todo.link
+      todoStack.url = todo.url
 
       const titleStack = this.align(todoStack)
       this.provideText(`• ${todo.name}`, titleStack, this.format.reminderTitle)
