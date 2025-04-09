@@ -66,7 +66,6 @@ const code = importModule(codeFilename)
 
 const custom = {
 
-  // Custom items and backgrounds can be added here.
   async todos(column) {
     const url = "https://api.delianpetrov.com/todos";
     const req = new Request(url)
@@ -77,14 +76,14 @@ const custom = {
 
     }
 
-    response.map((todo) => {
+    const todos = response.map((todo) => {
       const { name, id, date } = todo
 
       return name;
     })
     //const response = fetch(url);
 
-    code.provideText("• My text here", column, code.format.eventTitle)
+    code.provideText(todos.split("\n"), column, code.format.eventTitle)
   }
 }
 
