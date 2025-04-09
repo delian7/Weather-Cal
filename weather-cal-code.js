@@ -31,7 +31,7 @@ const weatherCal = {
     if (!this.fm.fileExists(this.fm.joinPath(this.fm.libraryDirectory(), "weather-cal-setup"))) return await this.initialSetup(backgroundSettingExists)
     if (backgroundSettingExists) return await this.editSettings(codeFilename, gitHubUrl)
     await this.generateAlert("Weather Cal is set up, but you need to choose a background for this widget.",["Continue"])
-    return await this.setWidgetBackground() 
+    return await this.setWidgetBackground()
   },
 
   // Run the initial setup.
@@ -56,7 +56,7 @@ const weatherCal = {
     if (errors.length == 2) { issues += " and " + errors[1] }
     if (errors.length == 3) { issues += ", " + errors[1] + ", and " + errors[2] }
 
-    if (issues) { 
+    if (issues) {
       message = "Scriptable does not have permission for " + issues + ". Some features may not work without enabling them in the Settings app."
       options = ["Continue setup anyway", "Exit setup"]
     } else {
@@ -92,19 +92,19 @@ const weatherCal = {
 
   // Edit the widget settings.
   async editSettings(codeFilename, gitHubUrl) {
-    const menu = { 
-      preview: "Show widget preview", 
-      background: "Change background", 
-      preferences: "Edit preferences", 
-      update: "Update code", 
-      share: "Export widget", 
-      other: "Other settings", 
-      exit: "Exit settings menu", 
+    const menu = {
+      preview: "Show widget preview",
+      background: "Change background",
+      preferences: "Edit preferences",
+      update: "Update code",
+      share: "Export widget",
+      other: "Other settings",
+      exit: "Exit settings menu",
     }
     const menuOptions = [menu.preview, menu.background, menu.preferences, menu.update, menu.share, menu.other, menu.exit]
     const response = menuOptions[await this.generateAlert("Widget Setup",menuOptions)]
 
-    if (response == menu.preview) { return this.previewValue() } 
+    if (response == menu.preview) { return this.previewValue() }
     if (response == menu.background) { return await this.setWidgetBackground() }
     if (response == menu.preferences) { return await this.editPreferences() }
 
@@ -118,7 +118,7 @@ const weatherCal = {
       const layout = this.fm.readString(this.fm.joinPath(this.fm.documentsDirectory(), this.name + ".js")).split('`')[1]
       const prefs = JSON.stringify(await this.getSettings())
       const bg = this.fm.readString(this.bgPath)
-      
+
       const widgetExport = `async function importWidget() {
       function makeAlert(message,options = ["OK"]) {
         const a = new Alert()
@@ -144,7 +144,7 @@ const weatherCal = {
       }
       await importWidget()
       Script.complete()`
-      
+
       const shouldUseQuickLook = await this.generateAlert("Your export is ready.",["Save to Files", "Display as text to copy"])
       if (shouldUseQuickLook) {
         QuickLook.present('/*\n\n\n\nTap the Share icon in the top right.\nThen tap "Copy" to copy all of this code.\nNow you can paste into a new script.\n\n\n\n*/\n' + widgetExport)
@@ -157,7 +157,7 @@ const weatherCal = {
     if (response == menu.other) {
       const otherOptions = ["Re-enter API key", "Completely reset widget", "Exit"]
       const otherResponse = await this.generateAlert("Other settings",otherOptions)
-    
+
       // Set the API key.
       if (otherResponse == 0) { await this.getWeatherKey() }
 
@@ -189,19 +189,19 @@ const weatherCal = {
     const apiKey = returnVal.textFieldValue(0)
     if (!apiKey || apiKey == "" || apiKey == null) { return await this.generateAlert("No API key was entered. Try copying the key again and re-running this script.",["Exit"]) }
     this.writePreference("weather-cal-api-key", apiKey)
-    
+
     const apiResponse = await this.getWeatherApiPath(apiKey)
     console.log(apiResponse);
-    if (apiResponse && apiResponse.current) { 
-      await this.generateAlert("The API key worked and was saved.",[firstRun ? "Continue" : "OK"]) 
+    if (apiResponse && apiResponse.current) {
+      await this.generateAlert("The API key worked and was saved.",[firstRun ? "Continue" : "OK"])
     } else if (firstRun) {
-      await this.generateAlert("New OpenWeather API keys may take a few hours to activate. Your widget will start displaying weather information once it's active.",["Continue"]) 
+      await this.generateAlert("New OpenWeather API keys may take a few hours to activate. Your widget will start displaying weather information once it's active.",["Continue"])
     } else {
       return await this.generateAlert("The key you entered, " + apiKey + ", didn't work. If it's a new key, it may take a few hours to activate.")
     }
     return true
   },
-  
+
   // Get the API path, or the test response if a new API key is provided.
   async getWeatherApiPath(newApiKey) {
     const apiParameter = "?appid=" + (newApiKey || this.fm.readString(this.fm.joinPath(this.fm.libraryDirectory(), "weather-cal-api-key")).replace(/\"/g,""))
@@ -209,7 +209,7 @@ const weatherCal = {
     if (!newApiKey && this.fm.fileExists(apiPathPreference)) {
       return this.fm.readString(apiPathPreference).replace(/\"/g,"") + apiParameter
     }
-    
+
     async function checkApiKey(path) {
       const req = new Request(path + apiParameter + "&lat=37.332280&lon=-122.010980")
       let response
@@ -219,16 +219,16 @@ const weatherCal = {
 
     let apiPath = "https://api.openweathermap.org/data/3.0/onecall"
     let apiResponse = await checkApiKey(apiPath)
-    
-    if (apiResponse && apiResponse.cod) { 
-      apiPath = "https://api.openweathermap.org/data/2.5/onecall" 
+
+    if (apiResponse && apiResponse.cod) {
+      apiPath = "https://api.openweathermap.org/data/2.5/onecall"
       apiResponse = await checkApiKey(apiPath)
     }
-    
+
     if (apiResponse && !apiResponse.cod) {
       this.writePreference("weather-cal-api-path", apiPath)
     }
-    
+
     return newApiKey ? apiResponse : apiPath + apiParameter
   },
 
@@ -260,15 +260,15 @@ const weatherCal = {
 
       const directoryPath = this.fm.joinPath(this.fm.documentsDirectory(), "Weather Cal")
       if (!this.fm.fileExists(directoryPath) || !this.fm.isDirectory(directoryPath)) { this.fm.createDirectory(directoryPath) }
-      
+
       this.fm.writeImage(this.fm.joinPath(directoryPath, this.name + ".jpg"), await Photos.fromLibrary())
-      
+
       background.dark = !(await this.generateAlert("Would you like to use a different image in dark mode?",["Yes","No"]))
       if (background.dark) this.fm.writeImage(this.fm.joinPath(directoryPath, this.name + " (Dark).jpg"), await Photos.fromLibrary())
     }
 
     this.writePreference(null, background, this.bgPath)
-    return this.previewValue() 
+    return this.previewValue()
   },
 
   // Load or reload a table full of preferences.
@@ -286,7 +286,7 @@ const weatherCal = {
       let valText
       if (Array.isArray(setting.val)) {
         valText = setting.val.map(a => a.title).join(", ")
-        
+
       } else if (setting.type == "fonts") {
         const item = setting.val
         const size = item.size.length ? `size ${item.size}` : ""
@@ -335,11 +335,11 @@ const weatherCal = {
           const keys = ["size","color","dark","font"]
           const values = []
           for (key of keys) values.push(setting.val[key])
-          
+
           const options = ["Capitalization","Save and Close"]
           const prompt = await this.generatePrompt(setting.name,setting.description,options,values,keys)
           const returnVal = await prompt.present()
-          
+
           if (returnVal) {
             for (let i=0; i < keys.length; i++) {
               setting.val[keys[i]] = prompt.textFieldValue(i).trim()
@@ -351,7 +351,7 @@ const weatherCal = {
 
           await this.loadPrefsTable(table,category)
         }
-      
+
       } else if (setting.type == "multival") {
         row.onSelect = async () => {
 
@@ -364,7 +364,7 @@ const weatherCal = {
           }
           await this.loadPrefsTable(table,category)
         }
-      
+
       } else if (setting.type == "multiselect") {
         row.onSelect = async () => {
 
@@ -372,10 +372,10 @@ const weatherCal = {
           const options = new Set(setting.options)
           const selected = new Set(setting.val.map ? setting.val.map(a => a.identifier) : [])
           const multiTable = new UITable()
-          
+
           await this.loadMultiTable(multiTable, options, selected)
           await multiTable.present()
-          
+
           setting.val = [...options].filter(option => [...selected].includes(option.identifier))
           await this.loadPrefsTable(table,category)
         }
@@ -384,7 +384,7 @@ const weatherCal = {
     }
     table.reload()
   },
-  
+
   // Load or reload a table with multi-select rows.
   async loadMultiTable(table,options,selected) {
     table.removeAllRows()
@@ -392,19 +392,19 @@ const weatherCal = {
       const row = new UITableRow()
       row.dismissOnSelect = false
       row.height = 55
-      
+
       const isSelected = selected.has(item.identifier)
       row.backgroundColor = isSelected ? Color.dynamic(new Color("d8d8de"), new Color("2c2c2c")) : Color.dynamic(Color.white(), new Color("151517"))
-      
+
       if (item.color) {
         const colorCell = row.addText(isSelected ? "\u25CF" : "\u25CB")
         colorCell.titleColor = item.color
         colorCell.widthWeight = 1
       }
-      
+
       const titleCell = row.addText(item.title)
       titleCell.widthWeight = 15
-      
+
       row.onSelect = async () => {
         if (isSelected) { selected.delete(item.identifier) }
         else { selected.add(item.identifier) }
@@ -414,10 +414,10 @@ const weatherCal = {
     }
     table.reload()
   },
-  
+
   // Get the current settings for the widget or for editing.
   async getSettings(forEditing = false) {
-    let settingsFromFile  
+    let settingsFromFile
     if (this.fm.fileExists(this.prefPath)) { settingsFromFile = JSON.parse(this.fm.readString(this.prefPath)) }
 
     const settingsObject = await this.defaultSettings()
@@ -427,7 +427,7 @@ const weatherCal = {
         // If the setting exists, use it. Otherwise, the default is used.
         let value = (settingsFromFile && settingsFromFile[category]) ? settingsFromFile[category][item] : undefined
         if (value == undefined) { value = settingsObject[category][item].val }
-        
+
         // Format the object correctly depending on where it will be used.
         if (forEditing) { settingsObject[category][item].val = value }
         else { settingsObject[category][item] = value }
@@ -499,22 +499,22 @@ const weatherCal = {
   async promptForText(title,values,keys,message) {
     return await this.generatePrompt(title,message,null,values,keys)
   },
-  
+
   // Generic implementation of an alert.
   async generatePrompt(title,message,options,textvals,placeholders) {
     const alert = new Alert()
     alert.title = title
     if (message) alert.message = message
-    
+
     const buttons = options || ["OK"]
     for (button of buttons) { alert.addAction(button) }
 
     if (!textvals) { return await alert.presentAlert() }
 
-    for (i=0; i < textvals.length; i++) { 
+    for (i=0; i < textvals.length; i++) {
       alert.addTextField(placeholders && placeholders[i] ? placeholders[i] : null,(textvals[i] || "") + "")
     }
-    
+
     if (!options) await alert.present()
     return alert
   },
@@ -524,8 +524,8 @@ const weatherCal = {
     const preference = typeof value == "string" ? value : JSON.stringify(value)
     this.fm.writeString(inputPath || this.fm.joinPath(this.fm.libraryDirectory(), name), preference)
   },
-  
-/* 
+
+/*
  * Widget spacing, background, and construction
  * -------------------------------------------- */
 
@@ -541,7 +541,7 @@ const weatherCal = {
       this.settings = await this.getSettings()
       this.settings.layout = layout
     }
-    
+
     // Shared values.
     this.locale = this.settings.widget.locale
     this.padding = parseInt(this.settings.widget.padding)
@@ -551,7 +551,7 @@ const weatherCal = {
     this.darkMode = !(Color.dynamic(Color.white(),Color.black()).red)
 
     if (!this.locale || this.locale == "" || this.locale == null) { this.locale = Device.locale() }
-    
+
     // Widget setup.
     this.widget = new ListWidget()
     this.widget.spacing = 0
@@ -564,7 +564,7 @@ const weatherCal = {
     const leftPad   = (widgetPad.left && widgetPad.left.length) ? parseInt(widgetPad.left) : horizontalPad
     const bottomPad = (widgetPad.bottom && widgetPad.bottom.length) ? parseInt(widgetPad.bottom) : verticalPad
     const rightPad  = (widgetPad.right && widgetPad.right.length) ? parseInt(widgetPad.right) : horizontalPad
-    
+
     this.widget.setPadding(topPad, leftPad, bottomPad, rightPad)
 
     // Background setup.
@@ -602,7 +602,7 @@ const weatherCal = {
         this.widget.backgroundImage = this.fm.readImage(imagePath)
 
       } else if (config.runsInWidget) {
-        this.widget.backgroundColor = Color.gray() 
+        this.widget.backgroundColor = Color.gray()
 
       } else {
         this.generateAlert("Please choose a background image in the settings menu.")
@@ -618,10 +618,10 @@ const weatherCal = {
     this.currentColumns = []
     this.rowNeedsSetup = false
 
-    for (rawLine of this.settings.layout.split(/\r?\n/)) { 
+    for (rawLine of this.settings.layout.split(/\r?\n/)) {
       const line = rawLine.trim()
       if (line == '') { continue }
-      if (this.usingASCII == undefined) { 
+      if (this.usingASCII == undefined) {
         if (line.includes("row")) { this.usingASCII = false }
         if (line[0] == "-" && line[line.length-1] == "-") { this.usingASCII = true }
       }
@@ -641,12 +641,12 @@ const weatherCal = {
     console.error("The " + functionName + " item in your layout is unavailable. Check for misspellings or other formatting issues. If you have any custom items, ensure they are set up correctly.")
   },
 
-  // Processes a single line of ASCII. 
+  // Processes a single line of ASCII.
   async processASCIILine(line) {
 
     // If it's a line, enumerate previous columns (if any) and set up the new row.
     if (line[0] == "-" && line[line.length-1] == "-") {
-      if (this.currentColumns.length > 0) { 
+      if (this.currentColumns.length > 0) {
         for (col of this.currentColumns) {
           if (!col) { continue }
           this.column(this.currentColumn,col.width)
@@ -657,9 +657,9 @@ const weatherCal = {
       return this.rowNeedsSetup = true
     }
 
-    if (this.rowNeedsSetup) { 
+    if (this.rowNeedsSetup) {
       this.row(this.currentColumn)
-      this.rowNeedsSetup = false 
+      this.rowNeedsSetup = false
     }
 
     const items = line.split('|')
@@ -672,7 +672,7 @@ const weatherCal = {
       const trimmedItem = rawItem.trim().split("(")[0]
 
       // If it's not a widget item, it's a column width or a space.
-      if (!(this[trimmedItem] || (this.custom && this.custom[trimmedItem]))) { 
+      if (!(this[trimmedItem] || (this.custom && this.custom[trimmedItem]))) {
 
         if (rawItem.match(/\s+\d+\s+/)) {
           const value = parseInt(trimmedItem)
@@ -713,7 +713,7 @@ const weatherCal = {
   },
 
   // Adds a space, with an optional amount.
-  space(input, parameter) { 
+  space(input, parameter) {
     if (parameter) input.addSpacer(parseInt(parameter))
     else input.addSpacer()
   },
@@ -727,7 +727,7 @@ const weatherCal = {
     returnStack.layoutVertically()
     return returnStack
   },
-  
+
   // Set the current alignment.
   setAlignment(left = false, right = false) {
     function alignment(alignmentStack) {
@@ -743,8 +743,8 @@ const weatherCal = {
   right() { this.setAlignment(false, true) },
   left() { this.setAlignment(true, false) },
   center() { this.setAlignment(true, true) },
-  
-/* 
+
+/*
  * Data setup functions
  * -------------------------------------------- */
 
@@ -765,7 +765,7 @@ const weatherCal = {
 
     let numberOfDays = parseInt(eventSettings.numberOfDays)
     numberOfDays = isNaN(numberOfDays) ? 1 : numberOfDays
-    
+
     // Complex due to support for old boolean values.
     let showFutureAt = parseInt(eventSettings.showTomorrow)
     showFutureAt = isNaN(showFutureAt) ? (eventSettings.showTomorrow ? 0 : 24) : showFutureAt
@@ -820,7 +820,7 @@ const weatherCal = {
 
       if (aTime > bTime) return 1
       if (aTime < bTime) return -1
-      return 0 
+      return 0
     })
 
     this.data.reminders = reminders.filter((reminder) => {
@@ -835,7 +835,7 @@ const weatherCal = {
   // Set up the gradient for the widget background.
   async setupGradient() {
     if (!this.data.sun) { await this.setupSunrise() }
-    
+
     if (this.isNight(this.now)) {
       return {
         color() { return [new Color("16296b"), new Color("021033"), new Color("021033"), new Color("113245")] },
@@ -853,7 +853,7 @@ const weatherCal = {
     const locationPath = this.fm.joinPath(this.fm.libraryDirectory(), "weather-cal-location")
     const locationCache = this.getCache(locationPath, this.settings ? parseInt(this.settings.widget.updateLocation) : null)
     let location
-    
+
     if (!locationCache || locationCache.cacheExpired) {
       try { location = await Location.current() }
       catch { location = locationCache || { cacheExpired: true } }
@@ -864,7 +864,7 @@ const weatherCal = {
       } catch {
         location.locality = locationCache ? locationCache.locality : null
       }
-      
+
       // If (and only if) we have new data, write it to disk.
       if (!location.cacheExpired) this.fm.writeString(locationPath, JSON.stringify(location))
     }
@@ -876,13 +876,13 @@ const weatherCal = {
   // Set up the sun data object.
   async setupSunrise() {
     if (!this.data.location) { await this.setupLocation() }
-	
+
 	const sunPath = this.fm.joinPath(this.fm.libraryDirectory(), "weather-cal-cache")
 	let sunData = this.getCache(sunPath, 60, 1440)
-	
+
 	const forcedLocale = this.settings.weather.locale || ""
 	let locale = forcedLocale.length ? forcedLocale : this.locale
-	
+
 	const safeLocales = this.getOpenWeatherLocaleCodes()
 	if (!forcedLocale.length && !safeLocales.includes(locale)) {
 		const languages = [locale, ...locale.split("_"), ...locale.split("-"), Device.locale(), ...Device.locale().split("_"), ...Device.locale().split("-")]
@@ -893,7 +893,7 @@ const weatherCal = {
 			}
 		}
 	}
-	
+
 	if (!sunData || sunData.cacheExpired) {
 		try {
 			const apiPath = await this.getWeatherApiPath()
@@ -916,14 +916,14 @@ const weatherCal = {
 
     const weatherPath = this.fm.joinPath(this.fm.libraryDirectory(), "weather-cal-cache")
     let weatherData = this.getCache(weatherPath, 1, 60)
-    
+
     const forcedLocale = this.settings.weather.locale || ""
     let locale = forcedLocale.length ? forcedLocale : this.locale
-    
+
     const safeLocales = this.getOpenWeatherLocaleCodes()
     if (!forcedLocale.length && !safeLocales.includes(locale)) {
       const languages = [locale, ...locale.split("_"), ...locale.split("-"), Device.locale(), ...Device.locale().split("_"), ...Device.locale().split("-")]
-      for (item of languages) { 
+      for (item of languages) {
         if (safeLocales.includes(item)) {
           locale = item
           break
@@ -975,7 +975,7 @@ const weatherCal = {
     }
     this.data.covid = covidData || {}
   },
-  
+
   // Set up the news.
   async setupNews() {
     const newsPath = this.fm.joinPath(this.fm.libraryDirectory(), this.settings.news.url)
@@ -987,7 +987,7 @@ const weatherCal = {
         const isRss = rawData.includes("<rss")
         rawData = getTag(rawData, isRss ? "item" : "entry", parseInt(this.settings.news.numberOfItems))
         if (!rawData || rawData.length == 0) { throw 0 }
-        
+
         newsData = []
         for (item of rawData) {
           const listing = {}
@@ -1000,17 +1000,17 @@ const weatherCal = {
       } catch {}
     }
     this.data.news = newsData || []
-    
+
     // Get one or many tags from a string.
     function getTag(string, tag, number = 1) {
       const open = "<" + tag
       const close = "</" + tag + ">"
       let returnVal = []
       let data = string
-  
+
       for (i = 0; i < number; i++) {
         const openIndex = data.indexOf(open)+open.length+1
-        const closeIndex = data.indexOf(close) 
+        const closeIndex = data.indexOf(close)
         if (closeIndex >= 0) {
           returnVal.push(data.slice(openIndex, closeIndex))
           data = data.slice(closeIndex + close.length)
@@ -1018,11 +1018,11 @@ const weatherCal = {
           const hrefMatches = [...data.matchAll(/<link.+?href=\"(.+?)\".+?>/g)]
           if (hrefMatches && hrefMatches[0] && hrefMatches[0][1]) returnVal.push(hrefMatches[0][1])
           data = data.slice(openIndex)
-        } 
+        }
       }
       return returnVal
     }
-    
+
     // Scrub a string so it's readable.
     function scrubString(val) {
       return val.replace(/^<!\[CDATA\[/,"").replace(/\]\]>$/,"").replace(/&#(.+?);/g,function(match,p1) {
@@ -1030,8 +1030,8 @@ const weatherCal = {
       })
     }
   },
-  
-/* 
+
+/*
  * Widget items
  * -------------------------------------------- */
 
@@ -1039,7 +1039,7 @@ const weatherCal = {
   async date(column) {
     const dateSettings = this.settings.date
     if (!this.data.events && dateSettings.dynamicDateSize) { await this.setupEvents() }
-	
+
 	const secondsForToday = Math.floor(new Date().getTime() / 1000) - 978307200
 	const defaultUrl = "calshow:" + secondsForToday
 	const settingUrl = dateSettings.url || ""
@@ -1079,7 +1079,7 @@ const weatherCal = {
     const eventSettings = this.settings.events
 
     const settingUrlExists = (eventSettings.url || "").length > 0
-    if (this.data.events.length == 0) { 
+    if (this.data.events.length == 0) {
       const secondsForToday = Math.floor(new Date().getTime() / 1000) - 978307200
       if (eventSettings.noEventBehavior == "message" && this.localization.noEventMessage.length) { return this.provideText(this.localization.noEventMessage, column, this.format.noEvents, true, settingUrlExists ? eventSettings.url : "calshow:" + secondsForToday) }
       if (this[eventSettings.noEventBehavior]) { return await this[eventSettings.noEventBehavior](column) }
@@ -1090,7 +1090,7 @@ const weatherCal = {
     const numberOfEvents = this.data.events.length
     const showCalendarColor = eventSettings.showCalendarColor
     const colorShape = showCalendarColor.includes("circle") ? "circle" : "rectangle"
-    
+
     // Creates an event stack on the widget for a specific date diff.
     function makeEventStack(diff, currentDate) {
       const eventStack = column.addStack()
@@ -1100,7 +1100,7 @@ const weatherCal = {
       eventStack.url = settingUrlExists ? eventSettings.url : "calshow:" + secondsForDay
       currentStack = eventStack
     }
-    
+
     makeEventStack(currentDiff,this.now)
 
     for (let i = 0; i < numberOfEvents; i++) {
@@ -1115,7 +1115,7 @@ const weatherCal = {
         const eventLabelText = (diff == 1 && tomorrowText.length) ? tomorrowText : this.formatDate(event.startDate,eventSettings.labelFormat)
         this.provideText(eventLabelText.toUpperCase(), currentStack, this.format.eventLabel, true)
       }
-      
+
       // Setting up the title row.
       const titleStack = this.align(currentStack)
       titleStack.layoutHorizontally()
@@ -1139,7 +1139,7 @@ const weatherCal = {
         const colorItem = this.provideText(colorItemText, titleStack, this.format.eventTitle)
         colorItem.textColor = event.calendar.color
       }
-      
+
       // Setting up the location row.
       if (showLocation) {
         const locationStack = this.align(currentStack)
@@ -1149,11 +1149,11 @@ const weatherCal = {
       }
 
       if (event.isAllDay) { continue }
-      
+
       // Setting up the time row.
       let timeText = this.formatTime(event.startDate)
-      if (eventSettings.showEventLength == "time") { 
-        timeText += "–" + this.formatTime(event.endDate) 
+      if (eventSettings.showEventLength == "time") {
+        timeText += "–" + this.formatTime(event.endDate)
 
       } else if (eventSettings.showEventLength == "duration") {
         const duration = (event.endDate.getTime() - event.startDate.getTime()) / (1000*60)
@@ -1248,7 +1248,7 @@ const weatherCal = {
 
     const [locationData, weatherData, sunData] = [this.data.location, this.data.weather, this.data.sun]
     const weatherSettings = this.settings.weather
-    
+
     // Setting up the current weather stack.
     const currentWeatherStack = column.addStack()
     currentWeatherStack.layoutVertically()
@@ -1257,7 +1257,7 @@ const weatherCal = {
     const defaultUrl = "weather://"
     const settingUrl = weatherSettings.urlCurrent || ""
     if (settingUrl.trim() != "none") { currentWeatherStack.url = (settingUrl.length > 0) ? settingUrl : defaultUrl }
-    
+
     // Displaying the main conditions.
     if (weatherSettings.showLocation) { this.provideText(locationData.locality, currentWeatherStack, this.format.smallTemp, true) }
 
@@ -1266,7 +1266,7 @@ const weatherCal = {
     mainCondition.imageSize = new Size(22,22) // TODO: Adjustable size
     this.tintIcon(mainCondition, this.format.largeTemp)
     mainConditionStack.setPadding(weatherSettings.showLocation ? 0 : this.padding, this.padding, 0, this.padding)
-    
+
     const tempText = this.displayNumber(weatherData.currentTemp,"--") + "°"
     if (weatherSettings.horizontalCondition) {
       mainConditionStack.addSpacer(5)
@@ -1288,7 +1288,7 @@ const weatherCal = {
     }
 
     if (!weatherSettings.showHighLow) { return }
-    
+
     // Setting up the temp bar.
     const tempBarStack = this.align(currentWeatherStack)
     tempBarStack.layoutVertically()
@@ -1387,19 +1387,19 @@ const weatherCal = {
     const defaultUrl = "weather://"
     const settingUrl = hourly ? (weatherSettings.urlFuture || "") : (weatherSettings.urlForecast || "")
     weatherStack.url = (settingUrl.length > 0) ? settingUrl : defaultUrl
-    
+
     const horizontal = hourly ? weatherSettings.horizontalHours : weatherSettings.horizontalForecast
     const spacing = (weatherSettings.spacing ? parseInt(weatherSettings.spacing) : 0) + (horizontal ? 0 : 5)
     const outsidePadding = this.padding > spacing ? this.padding - spacing : 0
 
-    if (horizontal) { 
+    if (horizontal) {
       weatherStack.layoutHorizontally()
       weatherStack.setPadding(this.padding, outsidePadding, this.padding, outsidePadding)
     } else {
       weatherStack.layoutVertically()
       weatherStack.setPadding(outsidePadding, this.padding, outsidePadding, this.padding)
     }
-    
+
     let startIndex = hourly ? 0 : (weatherSettings.showToday ? 1 : 2)
     let endIndex = (hourly ? parseInt(weatherSettings.showHours) : parseInt(weatherSettings.showDays)) + startIndex
     if (endIndex > 9) { endIndex = 9 }
@@ -1407,7 +1407,7 @@ const weatherCal = {
     const myDate = new Date()
     if (!hourly && startIndex == 1) { myDate.setDate(myDate.getDate() - 1) }
     const dateFormat = hourly ? weatherSettings.showHoursFormat : weatherSettings.showDaysFormat
-    
+
     // Loop through each individual unit.
     const edgePadding = this.padding > spacing ? spacing : this.padding
     const smallFontSize = (this.format.smallTemp && this.format.smallTemp.size) ? this.format.smallTemp.size : this.format.defaultText.size
@@ -1424,59 +1424,59 @@ const weatherCal = {
       if (horizontal) {
         unitStack.setPadding(0, initialSpace, 0, finalSpace)
         unitStack.layoutVertically()
-        
+
         dateStack.addSpacer()
         this.provideText(this.formatDate(myDate,dateFormat), dateStack, this.format.smallTemp)
         dateStack.addSpacer()
-        
+
       } else {
         unitStack.setPadding(initialSpace, 0, finalSpace, 0)
         unitStack.layoutHorizontally()
-        
+
         dateStack.layoutHorizontally()
         dateStack.setPadding(0, 0, 0, 0)
         dateStack.size = stackSize
-        
+
         const dateText = this.provideText(this.formatDate(myDate,dateFormat), dateStack, this.format.smallTemp)
         dateText.lineLimit = 1
         dateText.minimumScaleFactor = 0.5
         dateStack.addSpacer()
       }
-      
+
       unitStack.centerAlignContent()
       unitStack.addSpacer(5)
-      
+
       const conditionStack = unitStack.addStack()
       conditionStack.centerAlignContent()
       conditionStack.layoutHorizontally()
       if (horizontal) { conditionStack.addSpacer() }
-      
+
       // Set up the container for the condition.
       if (hourly) {
         const subCondition = conditionStack.addImage(this.provideConditionSymbol(weatherData.hourly[i].Condition, this.isNight(myDate)))
         subCondition.imageSize = new Size(18,18)
         this.tintIcon(subCondition, this.format.smallTemp)
-        
+
         if (horizontal) { conditionStack.addSpacer() }
         unitStack.addSpacer(5)
-        
+
         const tempStack = unitStack.addStack()
         tempStack.centerAlignContent()
         tempStack.layoutHorizontally()
-        
+
         if (horizontal) { tempStack.addSpacer() }
         const temp = this.provideText(this.displayNumber(weatherData.hourly[i].Temp,"--") + "°", tempStack, this.format.smallTemp)
         temp.lineLimit = 1
         temp.minimumScaleFactor = 0.75
-        if (horizontal) { 
+        if (horizontal) {
           temp.size = stackSize
-          tempStack.addSpacer() 
+          tempStack.addSpacer()
         }
-        
-      } else { 
+
+      } else {
         const tinyFontSize = (this.format.tinyTemp && this.format.tinyTemp.size) ? this.format.tinyTemp.size : this.format.defaultText.size
         conditionStack.size = new Size(0,tinyFontSize*2.64)
-      
+
         const conditionIcon = conditionStack.addImage(this.provideConditionSymbol(weatherData.forecast[i - 1].Condition, false))
         conditionIcon.imageSize = new Size(18,18)
         this.tintIcon(conditionIcon, this.format.smallTemp)
@@ -1498,16 +1498,16 @@ const weatherCal = {
         const tempLow = this.provideText(this.displayNumber(weatherData.forecast[i - 1].Low,"-"), tempStack, this.format.tinyTemp)
         tempLow.lineLimit = 1
         tempLow.minimumScaleFactor = 0.6
-      
+
         if (horizontal) { conditionStack.addSpacer() }
       }
       if (hourly) { myDate.setHours(myDate.getHours() + 1) }
     }
   },
-  
+
   // Allow both terms to be used.
   async daily(column) { await this.forecast(column) },
-  
+
   // Display an hourly forecast.
   async hourly(column) { await this.forecast(column, true) },
 
@@ -1548,7 +1548,7 @@ const weatherCal = {
 
   // Allow for either term to be used.
   async sunset(column) { return await this.sunrise(column, true) },
-  
+
   // Display COVID info on the widget.
   async covid(column) {
     if (!this.data.covid) { await this.setupCovid() }
@@ -1579,7 +1579,7 @@ const weatherCal = {
     if (!input || input == "") { return }
     this.provideText(input, column, this.format.customText, true)
   },
-  
+
   // Add a battery element to the widget.
   battery(column) {
     const batteryStack = this.align(column)
@@ -1611,7 +1611,7 @@ const weatherCal = {
     const weekNumber = Math.floor(1 + 0.5 + (currentThursday.getTime() - firstThursday.getTime()) / 86400000/7) + ""
     this.provideText(this.localization.week + " " + weekNumber, weekStack, this.format.week)
   },
-  
+
   // Display a symbol.
   symbol(column, name) {
     if (!name || !SFSymbol.named(name)) { return }
@@ -1622,7 +1622,7 @@ const weatherCal = {
     const leftPad   = (symbolPad.left && symbolPad.left.length) ? parseInt(symbolPad.left) : this.padding
     const bottomPad = (symbolPad.bottom && symbolPad.bottom.length) ? parseInt(symbolPad.bottom) : this.padding
     const rightPad  = (symbolPad.right && symbolPad.right.length) ? parseInt(symbolPad.right) : this.padding
-    
+
     const symbolStack = this.align(column)
     symbolStack.setPadding(topPad, leftPad, bottomPad, rightPad)
 
@@ -1631,7 +1631,7 @@ const weatherCal = {
     symbol.imageSize = new Size(size, size)
     if (symSettings.tintColor.length > 0) { symbol.tintColor = new Color(symSettings.tintColor) }
   },
-  
+
   // Show news headlines.
   async news(column) {
     if (!this.data.news) { await this.setupNews() }
@@ -1643,13 +1643,13 @@ const weatherCal = {
       newsStack.spacing = this.padding/5
       newsStack.layoutVertically()
       newsStack.url = newsItem.link
-      
+
       const titleStack = this.align(newsStack)
       const title = this.provideText(newsItem.title, titleStack, this.format.newsTitle)
       if (newsSettings.limitLineHeight) title.lineLimit = 1
 
       if (!newsSettings.showDate) { continue }
-      
+
       const dateStack = this.align(newsStack)
       let dateValue = new Date(newsItem.date)
       let dateText
@@ -1675,8 +1675,63 @@ const weatherCal = {
       if (dateText) this.provideText(dateText, dateStack, this.format.newsDate)
     }
   },
-  
-/* 
+
+  async notionTodos(column) {
+    const url = "https://api.delianpetrov.com/todos";
+    const req = new Request(url)
+    let response;
+    try {
+      response = await req.loadJSON()
+    } catch {
+
+    }
+
+    const todos = response.map((todo) => {
+      const { name, id, date } = todo
+
+      return name;
+    })
+
+    for (todo of ttodos) {
+      const newsStack = column.addStack()
+      newsStack.setPadding(this.padding, this.padding, this.padding, this.padding)
+      newsStack.spacing = this.padding/5
+      newsStack.layoutVertically()
+      newsStack.url = newsItem.link
+
+      const titleStack = this.align(newsStack)
+      const title = this.provideText(newsItem.title, titleStack, this.format.newsTitle)
+      if (newsSettings.limitLineHeight) title.lineLimit = 1
+
+      if (!newsSettings.showDate) { continue }
+
+      const dateStack = this.align(newsStack)
+      let dateValue = new Date(newsItem.date)
+      let dateText
+      switch (newsSettings.showDate) {
+        case "relative":
+          const rdf = new RelativeDateTimeFormatter()
+          rdf.locale = this.locale
+          rdf.useNamedDateTimeStyle()
+          dateText = rdf.string(dateValue, this.now)
+          break
+        case "date":
+          dateText = this.formatDate(dateValue)
+          break
+        case "time":
+          dateText = dateText = this.formatTime(dateValue)
+          break
+        case "datetime":
+          dateText = this.formatDatetime(dateValue)
+          break
+        case "custom":
+          dateText = this.formatDate(dateValue, newsSettings.dateFormat)
+      }
+      if (dateText) this.provideText(dateText, dateStack, this.format.newsDate)
+    }
+  },
+
+/*
  * Helper functions
  * -------------------------------------------- */
 
@@ -1684,17 +1739,17 @@ const weatherCal = {
   getOpenWeatherLocaleCodes() {
     return ["af","al","ar","az","bg","ca","cz","da","de","el","en","eu","fa","fi","fr","gl","he","hi","hr","hu","id","it","ja","kr","la","lt","mk","no","nl","pl","pt","pt_br","ro","ru","sv","se","sk","sl","sp","es","sr","th","tr","ua","uk","vi","zh_cn","zh_tw","zu"]
   },
-  
+
   // Gets the cache.
   getCache(path, minAge = -1, maxAge) {
     if (!this.fm.fileExists(path)) return null
     if (!this.fm.readString(path)) return null
     const cache = JSON.parse(this.fm.readString(path))
     const age = (this.now.getTime() - this.fm.modificationDate(path).getTime())/60000
-    
+
     // Maximum ages must be explicitly defined.
     if (Number.isInteger(maxAge) && age > maxAge) return null
-    
+
     // The cache is always expired if there's no acceptable minimum age.
     if (minAge != -1 && (!minAge || age > minAge)) cache.cacheExpired = true
     return cache
@@ -1718,7 +1773,7 @@ const weatherCal = {
     const timeValue = dateInput.getTime()
     return (timeValue < this.data.sun.sunrise) || (timeValue > this.data.sun.sunset)
   },
-  
+
   // Returns the difference in days between two dates. Adapted from StackOverflow.
   dateDiff(first, second) {
     const firstDate = new Date(first.getFullYear(), first.getMonth(), first.getDate(), 0, 0, 0)
@@ -1729,7 +1784,7 @@ const weatherCal = {
   // Convenience functions for dates and times.
   formatTime(date) { return this.formatDate(date,null,false,true) },
   formatDatetime(date) { return this.formatDate(date,null,true,true) },
-  
+
   // Format the date. If no format is provided, date-only is used by default.
   formatDate(date,format,showDate = true, showTime = false) {
     const df = new DateFormatter()
@@ -1747,7 +1802,7 @@ const weatherCal = {
   provideTextSymbol(shape) {
     if (shape.startsWith("rect")) { return "\u2759" }
     if (shape == "circle") { return "\u2B24" }
-    return "\u2759" 
+    return "\u2759"
   },
 
   // Provide a battery SFSymbol with accurate level drawn on top of it.
@@ -1831,16 +1886,16 @@ const weatherCal = {
       container = this.align(stack)
       container.setPadding(this.padding, this.padding, this.padding, this.padding)
     }
-    
+
     const capsEnum = this.enum.caps
     function capitalize(text,caps) {
       switch (caps) {
         case (capsEnum.upper):
           return text.toUpperCase()
-        
+
         case (capsEnum.lower):
           return text.toLowerCase()
-        
+
         case (capsEnum.title):
           return text.replace(/\w\S*/g,function(a) {
             return a.charAt(0).toUpperCase() + a.substr(1).toLowerCase()
@@ -1848,10 +1903,10 @@ const weatherCal = {
       }
       return text
     }
-    
+
     const capFormat = (format && format.caps && format.caps.length) ? format.caps : this.format.defaultText.caps
     const textItem = container.addText(capitalize(string,capFormat))
-    
+
     const textFont = (format && format.font && format.font.length) ? format.font : this.format.defaultText.font
     const textSize = (format && format.size && parseInt(format.size)) ? format.size : this.format.defaultText.size
     textItem.font = this.provideFont(textFont, parseInt(textSize))
@@ -1862,7 +1917,7 @@ const weatherCal = {
 
     return textItem
   },
-  
+
   // Provide a color based on a format and the current dark mode state.
   provideColor(format, alpha) {
     const defaultText = this.format.defaultText
@@ -1902,7 +1957,7 @@ const weatherCal = {
     const weatherData = this.data.weather
 
     let percent = (weatherData.currentTemp - weatherData.todayLow) / (weatherData.todayHigh - weatherData.todayLow)
-    if (percent < 0) { percent = 0 } 
+    if (percent < 0) { percent = 0 }
     else if (percent > 1) { percent = 1 }
 
     const draw = new DrawContext()
@@ -1926,7 +1981,7 @@ const weatherCal = {
 
     return draw.getImage()
   },
-  
+
   // Return the default widget settings.
   async defaultSettings() {
     const settings = {
@@ -2176,7 +2231,7 @@ const weatherCal = {
         largeDateLineOne: {
           val: "EEEE,",
           name: "Large date format, line 1",
-        }, 
+        },
         largeDateLineTwo: {
           val: "MMMM d",
           name: "Large date format, line 2",
@@ -2185,82 +2240,82 @@ const weatherCal = {
 			val: "",
 			name: "URL to open when tapped",
 			description: "Optionally provide a URL to open when this item is tapped. Leave blank to open the built-in Calendar app.",
-		},		
+		},
       },
       events: {
         name: "Events",
         numberOfEvents: {
           val: "3",
           name: "Maximum number of events shown",
-        }, 
+        },
         minutesAfter: {
           val: "5",
           name: "Minutes after event begins",
           description: "Number of minutes after an event begins that it should still be shown. Leave blank for an event to show for its duration.",
-        }, 
+        },
         showAllDay: {
           val: false,
           name: "Show all-day events",
-          type: "bool",        
+          type: "bool",
         },
         numberOfDays: {
           val: "1",
           name: "How many future days of events to show",
           description: "How many days to show into the future. Set to 0 to show today's events only.",
-        }, 
+        },
         labelFormat: {
           val: "EEEE, MMMM d",
           name: "Date format for future event days",
-        }, 
+        },
         showTomorrow: {
           val: "20",
           name: "Future days shown at hour",
           description: "The hour (in 24-hour time) to start showing events for tomorrow or beyond. Use 0 for always, 24 for never.",
-        }, 
+        },
         showEventLength: {
           val: "duration",
           name: "Event length display style",
           description: "Choose whether to show the duration, the end time, or no length information.",
           type: "enum",
           options: ["duration","time","none"],
-        }, 
+        },
         showLocation: {
           val: false,
           name: "Show event location",
-          type: "bool",        
+          type: "bool",
         },
         selectCalendars: {
           val: [],
           name: "Calendars to show",
           type: "multiselect",
           options: await getFromCalendar(),
-        }, 
+        },
         showCalendarColor: {
           val: "rectangle left",
           name: "Display calendar color",
           description: "Choose the shape and location of the calendar color.",
           type: "enum",
           options: ["rectangle left","rectangle right","circle left","circle right","none"],
-        }, 
+        },
         noEventBehavior: {
           val: "message",
           name: "Show when no events remain",
           description: "When no events remain, show a hard-coded message, a time-based greeting, or nothing.",
           type: "enum",
           options: ["message","greeting","none"],
-        }, 
+        },
         url: {
           val: "",
           name: "URL to open when tapped",
           description: "Optionally provide a URL to open when this item is tapped. Leave blank to open the built-in Calendar app.",
-        }, 
+        },
       },
       reminders: {
         name: "Reminders",
         numberOfReminders: {
           val: "3",
           name: "Maximum number of reminders shown",
-        }, 
+        },
         useRelativeDueDate: {
           val: false,
           name: "Use relative dates",
@@ -2292,26 +2347,26 @@ const weatherCal = {
           name: "Lists to show",
           type: "multiselect",
           options: await getFromCalendar(true),
-        }, 
+        },
         showListColor: {
           val: "rectangle left",
           name: "Display list color",
           description: "Choose the shape and location of the list color.",
           type: "enum",
           options: ["rectangle left","rectangle right","circle left","circle right","none"],
-        }, 
+        },
         noRemindersBehavior: {
           val: "none",
           name: "Show when no reminders remain",
           description: "When no reminders remain, show a hard-coded message, a time-based greeting, or nothing.",
           type: "enum",
           options: ["message","greeting","none"],
-        }, 
+        },
         url: {
           val: "",
           name: "URL to open when tapped",
           description: "Optionally provide a URL to open when this item is tapped. Leave blank to open the built-in Reminders app.",
-        }, 
+        },
       },
       sunrise: {
         name: "Sunrise and sunset",
@@ -2319,7 +2374,7 @@ const weatherCal = {
           val: "",
           name: "Limit times displayed",
           description: "Set how many minutes before/after sunrise or sunset to show this element. Leave blank to always show.",
-        }, 
+        },
         separateElements: {
           val: false,
           name: "Use separate sunrise and sunset elements",
@@ -2365,7 +2420,7 @@ const weatherCal = {
           val: "20",
           name: "When to switch to tomorrow's weather",
           description: "Set the hour (in 24-hour time) to switch from the next hour to tomorrow's weather. Use 0 for always, 24 for never.",
-        }, 
+        },
         spacing: {
           val: "0",
           name: "Spacing between daily or hourly forecast items",
@@ -2378,11 +2433,11 @@ const weatherCal = {
         showHours: {
           val: "3",
           name: "Number of hours shown in the hourly forecast item",
-        }, 
+        },
         showHoursFormat: {
           val: "ha",
           name: "Date format for the hourly forecast item",
-        }, 
+        },
         horizontalForecast: {
           val: false,
           name: "Display the daily forecast horizontally",
@@ -2391,11 +2446,11 @@ const weatherCal = {
         showDays: {
           val: "3",
           name: "Number of days shown in the daily forecast item",
-        }, 
+        },
         showDaysFormat: {
           val: "E",
           name: "Date format for the daily forecast item",
-        }, 
+        },
         showToday: {
           val: false,
           name: "Show today's weather in the daily forecast item",
@@ -2405,28 +2460,28 @@ const weatherCal = {
           val: "",
           name: "URL to open when current weather is tapped",
           description: "Optionally provide a URL to open when this item is tapped. Leave blank for the weather app.",
-        }, 
+        },
         urlFuture: {
           val: "",
           name: "URL to open when hourly weather is tapped",
           description: "Optionally provide a URL to open when this item is tapped. Leave blank for the weather app.",
-        }, 
+        },
         urlForecast: {
           val: "",
           name: "URL to open when daily weather is tapped",
           description: "Optionally provide a URL to open when this item is tapped. Leave blank for the weather app.",
-        }, 
+        },
       },
       covid: {
         name: "COVID data",
         country: {
           val: "USA",
           name: "Country for COVID information",
-        }, 
+        },
         url: {
           val: "https://covid19.who.int",
           name: "URL to open when the COVID data is tapped",
-        }, 
+        },
       },
       symbol: {
         name: "Symbols",
@@ -2434,7 +2489,7 @@ const weatherCal = {
           val: "18",
           name: "Size",
           description: "Size of each symbol. Leave blank to fill the width of the column.",
-        }, 
+        },
         padding: {
           val: { top: "", left: "", bottom: "", right: "" },
           name: "Padding",
@@ -2445,7 +2500,7 @@ const weatherCal = {
           val: "ffffff",
           name: "Tint color",
           description: "The hex code color value to tint the symbols. Leave blank for the default tint.",
-        }, 
+        },
       },
       news: {
         name: "News",
@@ -2453,11 +2508,11 @@ const weatherCal = {
           val: "http://rss.cnn.com/rss/cnn_topstories.rss",
           name: "RSS feed link",
           description: "The RSS feed link for the news to display."
-        }, 
+        },
         numberOfItems: {
           val: "1",
           name: "Maximum number of news items shown",
-        }, 
+        },
         limitLineHeight: {
           val: false,
           name: "Limit the height of each news item",
@@ -2470,7 +2525,7 @@ const weatherCal = {
           description: "Use relative (5 minutes ago), date, time, date and time, a custom format, or none.",
           type: "enum",
           options: ["relative","date","time","datetime","custom","none"],
-        }, 
+        },
         dateFormat: {
           val: "H:mm",
           name: "Date and/or time format for news items",
@@ -2478,7 +2533,7 @@ const weatherCal = {
         },
       },
     }
-    
+
     async function getFromCalendar(forReminders) {
       try { return await forReminders ? Calendar.forReminders() : Calendar.forEvents() }
       catch { return [] }
@@ -2486,7 +2541,7 @@ const weatherCal = {
 
     return settings
   },
-  
+
   enum: {
     caps: {
       upper: "ALL CAPS",
@@ -2509,7 +2564,7 @@ module.exports = weatherCal
  * Detect the current module
  * by Raymond Velasquez @supermamon
  * -------------------------------------------- */
- 
+
 const moduleName = module.filename.match(/[^\/]+$/)[0].replace(".js","")
 if (moduleName == Script.name()) {
   await (async () => {
@@ -2524,10 +2579,10 @@ if (moduleName == Script.name()) {
     const w = await weatherCal.createWidget(layout, name, true)
     w.presentLarge()
     Script.complete()
-  })() 
+  })()
 }
 
-/* 
+/*
  * Don't modify the characters below this line.
  * -------------------------------------------- */
 //4

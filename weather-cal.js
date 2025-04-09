@@ -19,25 +19,25 @@ Happy scripting!
 
 // Specify the layout of the widget items.
 const layout = `
-  
-  row 
+
+  row
     column
       date
       sunset
       battery
       space
       events
-    
+
     column(90)
       current
       future
       space
-       
+
 `
 
 /*
  * CODE
- * Be more careful editing this section. 
+ * Be more careful editing this section.
  * =====================================
  */
 
@@ -67,7 +67,25 @@ const code = importModule(codeFilename)
 const custom = {
 
   // Custom items and backgrounds can be added here.
+  async todos(column) {
+    const url = "https://api.delianpetrov.com/todos";
+    const req = new Request(url)
+    let response;
+    try {
+      response = await req.loadJSON()
+    } catch {
 
+    }
+
+    response.map((todo) => {
+      const { name, id, date } = todo
+
+      return name;
+    })
+    //const response = fetch(url);
+
+    code.provideText("• My text here", column, code.format.eventTitle)
+  }
 }
 
 // Run the initial setup or settings menu.
