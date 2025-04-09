@@ -1679,9 +1679,10 @@ const weatherCal = {
   async notionTodos(column) {
     const url = "https://api.delianpetrov.com/todos";
     const req = new Request(url) 
+    const apiKey = this.fm.readString(this.fm.joinPath(this.fm.libraryDirectory(), "weather-cal-api-key")).replace(/\"/g,"")
 
     req.headers = {
-      "x-api-key": "your-api-key-here"
+      "x-api-key": apiKey
     };    
     
     let todos;
